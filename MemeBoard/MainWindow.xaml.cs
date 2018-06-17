@@ -1,6 +1,7 @@
 ﻿using mrousavy;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,12 +28,18 @@ namespace MemeBoard
     {
         private Storyboard sb => (Storyboard)this.Resources["imageRotationStoryboard"];
         private bool isRotating = false;
-        private Memes currentMeme = Memes.MonkaS;
+
+        private List<Meme> memes = new List<Meme>();
+        private List<HotKey> keyBindings = new List<HotKey>();
+
+        private Meme currentMeme = null;
 
         public MainWindow()
         {
             InitializeComponent();
-            this.Topmost = true;
+
+            var path = @"C:\Users\stream\Desktop\memes2";
+            this.memes = Meme.Load(path);
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -42,6 +49,7 @@ namespace MemeBoard
 
         private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            //TODO: pageup pagedown 
             if (this.isRotating)
             {
                 sb.Stop();
@@ -54,7 +62,7 @@ namespace MemeBoard
             }
         }
 
-        private void ChangeMeme(Memes meme)
+        private void ChangeMeme(Meme meme)
         {
             if (this.IsVisible && this.currentMeme == meme)
             {
@@ -63,37 +71,24 @@ namespace MemeBoard
             }
 
             sb.Stop();
+            ImageBehavior.SetAnimatedSource(this.image, null);
 
-            switch (meme)
+            if (meme.IsAnimated)
             {
-                case Memes.LUL:
-                    ImageBehavior.SetAnimatedSource(image, null);
-                    this.image.Source = new BitmapImage(new Uri(@"C:\Users\stream\Desktop\memes\LUL.png"));
-                    break;
-                case Memes.MonkaS:
-                    this.image.Source = new BitmapImage(new Uri(@"C:\Users\stream\Desktop\memes\monkaS.png"));
-                    break;
-                case Memes.OMEGALUL:
-                    this.image.Source = new BitmapImage(new Uri(@"C:\Users\stream\Desktop\memes\omegalul.png"));
-                    break;
-                case Memes.Confused:
-                    this.image.Source = new BitmapImage(new Uri(@"C:\Users\stream\Desktop\memes\confused.png"));
-                    break;
-                case Memes.LUL3D:
-                    var img = new BitmapImage();
-                    img.BeginInit();
-                    img.UriSource = new Uri(@"C:\Users\stream\Desktop\memes\lul3d.gif");
-                    img.EndInit();
-                    ImageBehavior.SetAnimatedSource(image, img);
-                    break;
-                default:
-                    break;
+                var img = new BitmapImage();
+                img.BeginInit();
+                img.UriSource = new Uri(meme.Path);
+                img.EndInit();
+                ImageBehavior.SetAnimatedSource(image, img);
+            }
+            else
+            {
+                this.image.Source = new BitmapImage(new Uri(meme.Path));
             }
 
             this.currentMeme = meme;
 
             this.ShowActivated = false;
-
             this.Show();
         }
 
@@ -104,37 +99,21 @@ namespace MemeBoard
             Native.SetWindowExTransparent(hwnd);
         }
 
+        private void SetKeyBindings(Meme meme)
+        {
+            Enum.TryParse<Key>(meme.BindingKey, out var result);
+
+            var key = new HotKey(ModifierKeys.Control, result, this, _ => this.ChangeMeme(meme));
+
+            this.keyBindings.Add(key);
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            new HotKey(ModifierKeys.Control, Key.L, this,
-                _ => this.ChangeMeme(Memes.LUL));
-
-            new HotKey(ModifierKeys.Control, Key.M, this,
-                _ => this.ChangeMeme(Memes.MonkaS));
-
-            new HotKey(ModifierKeys.Control, Key.O, this,
-                _ => this.ChangeMeme(Memes.OMEGALUL));
-
-            new HotKey(ModifierKeys.Control, Key.D3, this,
-                _ => this.ChangeMeme(Memes.LUL3D));
-
-            new HotKey(ModifierKeys.Control, Key.W, this,
-                _ => this.ChangeMeme(Memes.Confused));
+            foreach (var meme in this.memes)
+            {
+                this.SetKeyBindings(meme);
+            }
         }
-    }
-
-    public enum Memes
-    {
-        LUL,
-        LUL3D,
-        MonkaS,
-        Confused,
-        PogChamp,
-        POGGERS,
-        OMEGALUL,
-        ResidentSleeper,
-        gachiBASS,
-        WutFace,
-        cmonBruh
     }
 }
