@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -54,9 +56,9 @@ namespace MemeBoard
 
         private void ChangeMeme(Memes meme)
         {
-            if (this.WindowState == WindowState.Maximized && this.currentMeme == meme)
+            if (this.IsVisible && this.currentMeme == meme)
             {
-                this.WindowState = WindowState.Minimized;
+                this.Hide();
                 return;
             }
 
@@ -90,9 +92,16 @@ namespace MemeBoard
 
             this.currentMeme = meme;
 
-            this.WindowState = WindowState.Maximized;
+            this.ShowActivated = false;
 
-            this.Activate();
+            this.Show();
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var hwnd = new WindowInteropHelper(this).Handle;
+            Native.SetWindowExTransparent(hwnd);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

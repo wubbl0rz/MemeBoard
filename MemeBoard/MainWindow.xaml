@@ -9,8 +9,9 @@
         WindowStyle="None"
         Background="Transparent"
         AllowsTransparency="True"
-        WindowState="Maximized"
+        Topmost="True"
         Height="1000"
+        ShowInTaskbar="False"
         Width="1000" MouseLeftButtonDown="Window_MouseLeftButtonDown" MouseRightButtonDown="Window_MouseRightButtonDown" Loaded="Window_Loaded">
     <Window.Resources>
         <Storyboard x:Key="imageRotationStoryboard" Storyboard.TargetName="image" 
