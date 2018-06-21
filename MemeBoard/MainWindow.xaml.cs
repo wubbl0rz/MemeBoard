@@ -26,10 +26,9 @@ namespace MemeBoard
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Storyboard sb => (Storyboard)this.Resources["imageRotationStoryboard"];
-        private bool isRotating = false;
+        private Storyboard Storyboard => (Storyboard)this.Resources["imageRotationStoryboard"];
 
-        private List<Meme> memes = new List<Meme>();
+        private MemeRepo memeRepo = new MemeRepo(@"C:\Users\stream\Desktop\memes2");
         private List<HotKey> keyBindings = new List<HotKey>();
 
         private Meme currentMeme = null;
@@ -37,32 +36,9 @@ namespace MemeBoard
         public MainWindow()
         {
             InitializeComponent();
-
-            var path = @"C:\Users\stream\Desktop\memes2";
-            this.memes = Meme.Load(path);
         }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            this.DragMove();
-        }
-
-        private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            //TODO: pageup pagedown 
-            if (this.isRotating)
-            {
-                sb.Stop();
-                this.isRotating = false;
-            }
-            else
-            {
-                sb.Begin();
-                this.isRotating = true;
-            }
-        }
-
-        private void ChangeMeme(Meme meme)
+        private void ToggleMeme(Meme meme)
         {
             if (this.IsVisible && this.currentMeme == meme)
             {
@@ -70,7 +46,7 @@ namespace MemeBoard
                 return;
             }
 
-            sb.Stop();
+            Storyboard.Stop();
             ImageBehavior.SetAnimatedSource(this.image, null);
 
             if (meme.IsAnimated)
@@ -99,21 +75,32 @@ namespace MemeBoard
             Native.SetWindowExTransparent(hwnd);
         }
 
-        private void SetKeyBindings(Meme meme)
+        private void RefreshKeyBindings()
         {
-            Enum.TryParse<Key>(meme.BindingKey, out var result);
-
-            var key = new HotKey(ModifierKeys.Control, result, this, _ => this.ChangeMeme(meme));
-
-            this.keyBindings.Add(key);
+            this.keyBindings.ForEach(k => k.Dispose());
+            this.keyBindings.Clear();
+            
+            foreach (var meme in this.memeRepo.Memes)
+            {
+                if (Enum.TryParse<Key>(meme.Prefix, true, out var result))
+                    this.keyBindings.Add(new HotKey(ModifierKeys.Control, 
+                        result, this, _ => this.ToggleMeme(meme)));
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            foreach (var meme in this.memes)
-            {
-                this.SetKeyBindings(meme);
-            }
+            this.RefreshKeyBindings();
+
+            this.memeRepo.Updated += () => this.Dispatcher.Invoke(this.RefreshKeyBindings);
+
+            new HotKey(ModifierKeys.Control, Key.PageUp, this, _ => this.Storyboard.Begin());
+            new HotKey(ModifierKeys.Control, Key.PageDown, this, _ => this.Storyboard.Stop());
+        }
+        
+        private void TrayExit(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
