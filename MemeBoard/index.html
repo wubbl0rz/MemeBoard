@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+	<script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
+    <title></title>
+</head>
+<body>
+	<div id="content"></div>
+
+	<script>
+		async function main()
+		{
+			var con = new signalR.HubConnectionBuilder()
+				.withUrl("/MemeHub")
+				.build()
+
+			con.on("Invalidate", () => { con.invoke("RequestUpdate") });
+
+			con.on("Update", (memes) => {
+
+				var root = document.getElementById("content");
+				root.innerHTML = "";
+
+				for (meme of memes)
+				{
+					var img = document.createElement("img");
+
+					img.src =  "/img/" + meme.name;
+
+					img.width = 100;
+					img.height = 100;
+					img.alt = meme.name;
+
+					img.style = "box-sizing: border-box; border: 5px solid white;"
+					
+					if (meme.active) {
+						img.style = "box-sizing: border-box; border: 5px solid green;"
+					}
+
+					img.onclick = (element) =>
+					{
+						con.invoke("PushUpdate", element.srcElement.alt);
+					};
+
+					root.appendChild(img);
+				}
+			});
+
+			await con.start();
+
+			await con.invoke("RequestUpdate");
+		}
+
+		main();
+	</script>
+</body>
+</html>

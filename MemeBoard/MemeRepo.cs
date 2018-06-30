@@ -8,6 +8,7 @@ namespace MemeBoard
     class MemeRepo
     {
         public Meme[] Memes => this.memes.Values.ToArray();
+        public string Path { get; private set; }
 
         private readonly FileSystemWatcher watcher = new FileSystemWatcher();
         private readonly Dictionary<string, Meme> memes = new Dictionary<string, Meme>();
@@ -24,6 +25,8 @@ namespace MemeBoard
             watcher.Created += UpdateMemes;
             watcher.Renamed += UpdateMemes;
             watcher.Deleted += UpdateMemes;
+
+            this.Path = path;
 
             watcher.EnableRaisingEvents = true;
         }

@@ -24,7 +24,6 @@
         <Image Name="image" 
            Width="900" 
            Height="900" 
-           Source="C:\Users\stream\Desktop\memes2\L_LUL.png" 
            RenderTransformOrigin=".5,.5">
             <Image.RenderTransform>
                 <RotateTransform Angle="0" />

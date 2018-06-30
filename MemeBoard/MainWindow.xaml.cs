@@ -1,4 +1,10 @@
-﻿using mrousavy;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.DependencyInjection;
+using mrousavy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,10 +33,37 @@ namespace MemeBoard
     public partial class MainWindow : Window
     {
         private Storyboard Storyboard => (Storyboard)this.Resources["imageRotationStoryboard"];
-
+        
         private MemeRepo memeRepo = new MemeRepo(@"C:\Users\stream\Desktop\memes2");
         private List<HotKey> keyBindings = new List<HotKey>();
 
+        // so macht mans nicht
+        class MemeHub : Hub
+        {
+            private readonly MainWindow w;
+
+            public MemeHub(MainWindow w)
+            {
+                this.w = w;
+            }
+
+            public void PushUpdate(string id)
+            {
+                if (this.w.memeRepo.Memes.FirstOrDefault(m => m.Name == id) is Meme meme)
+                {
+                    this.w.Dispatcher.Invoke(() => this.w.ToggleMeme(meme));
+                    this.Clients.Caller.SendAsync("Invalidate");
+                }
+            }
+
+            public void RequestUpdate()
+            {
+                var response = this.w.memeRepo.Memes.Select(m => new { m.Name, active = this.w.IsVisible && m == this.w.currentMeme });
+
+                this.Clients.Caller.SendAsync("Update", response);
+            }
+        }
+        
         private Meme currentMeme = null;
 
         public MainWindow()
@@ -96,6 +129,27 @@ namespace MemeBoard
 
             new HotKey(ModifierKeys.Control, Key.PageUp, this, _ => this.Storyboard.Begin());
             new HotKey(ModifierKeys.Control, Key.PageDown, this, _ => this.Storyboard.Stop());
+
+            WebHost.CreateDefaultBuilder().
+                ConfigureServices(services =>
+                {
+                    services.AddTransient(_ => this);
+                    services.AddSignalR();
+                }).
+                Configure(app => {
+                    app.UseStaticFiles(new StaticFileOptions {
+                        FileProvider = new PhysicalFileProvider(@"C:\Users\stream\Desktop\memes2"),
+                        RequestPath = "/img"
+                    });
+
+                    app.UseStaticFiles(new StaticFileOptions
+                    {
+                        FileProvider = new PhysicalFileProvider(System.IO.Directory.GetCurrentDirectory()),
+                        RequestPath = "/html"
+                    });
+
+                    app.UseSignalR(c => c.MapHub<MemeHub>("/MemeHub"));
+                }).UseUrls("http://*:5001/").Build().Start();
         }
         
         private void TrayExit(object sender, RoutedEventArgs e)
