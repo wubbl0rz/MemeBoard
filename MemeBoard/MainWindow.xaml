@@ -33,9 +33,13 @@
         <tb:TaskbarIcon x:Name="trayIcon"
                         Visibility="Visible"
                         IconSource="memeboard.ico"
-                        MenuActivation="All">
+                        MenuActivation="RightClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
+                    <MenuItem 
+                        Click="TrayStartStopServer"
+                        IsCheckable="True"
+                        Header="Start/Stop Server" />
                     <MenuItem Header="Exit" Click="TrayExit" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>

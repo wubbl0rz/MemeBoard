@@ -2,46 +2,51 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+	<meta charset="utf-8" />
 	<script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
-    <title></title>
+	<title></title>
 </head>
 <body>
 	<div id="content"></div>
 
 	<script>
-		async function main()
-		{
+		async function main() {
 			var con = new signalR.HubConnectionBuilder()
 				.withUrl("/MemeHub")
 				.build()
-
-			con.on("Invalidate", () => { con.invoke("RequestUpdate") });
 
 			con.on("Update", (memes) => {
 
 				var root = document.getElementById("content");
 				root.innerHTML = "";
 
-				for (meme of memes)
-				{
+				for (meme of memes) {
 					var img = document.createElement("img");
 
-					img.src =  "/img/" + meme.name;
+					img.src = "/img/" + meme.name;
+
+					if (meme.type == "TTS") {
+						img.src = "https://image.flaticon.com/icons/svg/149/149125.svg"
+					}
 
 					img.width = 100;
 					img.height = 100;
 					img.alt = meme.name;
+					img.meme = meme;
 
-					img.style = "box-sizing: border-box; border: 5px solid white;"
-					
-					if (meme.active) {
-						img.style = "box-sizing: border-box; border: 5px solid green;"
+					img.style = "box-sizing: border-box; border: 5px solid white; margin: 5px;"
+
+					if (meme.isActive) {
+						img.style.borderColor = "green";
+						if (meme.type == "TTS") {
+							img.style.borderColor = "purple";
+						}
 					}
 
-					img.onclick = (element) =>
-					{
-						con.invoke("PushUpdate", element.srcElement.alt);
+					img.onclick = (element) => {
+						var source = element.target || element.srcElement;
+
+						con.invoke("MemeClicked", source.meme.path);
 					};
 
 					root.appendChild(img);
@@ -49,8 +54,6 @@
 			});
 
 			await con.start();
-
-			await con.invoke("RequestUpdate");
 		}
 
 		main();

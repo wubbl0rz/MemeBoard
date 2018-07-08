@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace MemeBoard
 {
-    class MemeRepo
+    public class MemeRepo
     {
         public Meme[] Memes => this.memes.Values.ToArray();
         public string Path { get; private set; }
-
+        
         private readonly FileSystemWatcher watcher = new FileSystemWatcher();
         private readonly Dictionary<string, Meme> memes = new Dictionary<string, Meme>();
 

@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.DependencyInjection;
-using mrousavy;
+﻿using mrousavy;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Speech.Synthesis;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,7 +17,6 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using WpfAnimatedGif;
 
 namespace MemeBoard
@@ -33,72 +27,93 @@ namespace MemeBoard
     public partial class MainWindow : Window
     {
         private Storyboard Storyboard => (Storyboard)this.Resources["imageRotationStoryboard"];
-        
-        private MemeRepo memeRepo = new MemeRepo(@"C:\Users\stream\Desktop\memes2");
+
+        private MemeRepo memeRepo;
         private List<HotKey> keyBindings = new List<HotKey>();
 
-        // so macht mans nicht
-        class MemeHub : Hub
-        {
-            private readonly MainWindow w;
+        private Meme currentMeme;
 
-            public MemeHub(MainWindow w)
-            {
-                this.w = w;
-            }
-
-            public void PushUpdate(string id)
-            {
-                if (this.w.memeRepo.Memes.FirstOrDefault(m => m.Name == id) is Meme meme)
-                {
-                    this.w.Dispatcher.Invoke(() => this.w.ToggleMeme(meme));
-                    this.Clients.Caller.SendAsync("Invalidate");
-                }
-            }
-
-            public void RequestUpdate()
-            {
-                var response = this.w.memeRepo.Memes.Select(m => new { m.Name, active = this.w.IsVisible && m == this.w.currentMeme });
-
-                this.Clients.Caller.SendAsync("Update", response);
-            }
-        }
+        private WebInterface webInterface;
+        private SpeechSynthesizer tts = new SpeechSynthesizer();
         
-        private Meme currentMeme = null;
-
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private void ToggleMeme(Meme meme)
+        private void ToggleImageMeme(Meme meme)
         {
             if (this.IsVisible && this.currentMeme == meme)
             {
+                this.currentMeme = null;
+                this.memeRepo.Memes.Where(m => m.Type == MemeType.Image).ToList().ForEach(m => m.Deactivate());
                 this.Hide();
                 return;
             }
 
-            Storyboard.Stop();
-            ImageBehavior.SetAnimatedSource(this.image, null);
+            this.ResetAnimation();
 
             if (meme.IsAnimated)
-            {
-                var img = new BitmapImage();
-                img.BeginInit();
-                img.UriSource = new Uri(meme.Path);
-                img.EndInit();
-                ImageBehavior.SetAnimatedSource(image, img);
-            }
+                this.ShowGif(meme.Path);
             else
-            {
-                this.image.Source = new BitmapImage(new Uri(meme.Path));
-            }
+                this.ShowBitmap(meme.Path);
 
+            this.currentMeme?.Deactivate();
+            meme.Activate();
             this.currentMeme = meme;
-
             this.ShowActivated = false;
             this.Show();
+        }
+
+        private void ShowBitmap(string path)
+        {
+            this.image.Source = new BitmapImage(new Uri(path));
+        }
+
+        private void ResetAnimation()
+        {
+            this.Storyboard.Stop();
+            ImageBehavior.SetAnimatedSource(this.image, null);
+        }
+
+        private void ShowGif(string path)
+        {
+            var img = new BitmapImage();
+            img.BeginInit();
+            img.UriSource = new Uri(path);
+            img.EndInit();
+            ImageBehavior.SetAnimatedSource(this.image, img);
+        }
+
+        private void PlayTextMeme(Meme meme)
+        {
+            this.tts.SpeakAsyncCancelAll();
+            var text = File.ReadAllText(meme.Path);
+            meme.Activate();
+            
+            Task.Run(() => 
+            {
+                this.tts.Speak(text);
+                meme.Deactivate();
+                this.webInterface.SendUpdate();
+            });
+        }
+
+        private void ToggleMeme(Meme meme)
+        {
+            switch (meme.Type)
+            {
+                case MemeType.Image:
+                    this.ToggleImageMeme(meme);
+                    break;
+                case MemeType.TTS:
+                    this.PlayTextMeme(meme);
+                    break;
+                default:
+                    break;
+            }
+
+            this.webInterface.SendUpdate();
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -123,38 +138,38 @@ namespace MemeBoard
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            var memePath = Path.Combine(Directory.GetCurrentDirectory(), "memes");
+            if (!File.Exists(memePath))
+                Directory.CreateDirectory(memePath);
+            
+            this.memeRepo = new MemeRepo(Path.Combine(Directory.GetCurrentDirectory(), "memes"));
+
             this.RefreshKeyBindings();
+
+            this.webInterface = new WebInterface(this.memeRepo);
+            this.webInterface.MemeClicked += m => this.Dispatcher.Invoke(() => this.ToggleMeme(m));
 
             this.memeRepo.Updated += () => this.Dispatcher.Invoke(this.RefreshKeyBindings);
 
             new HotKey(ModifierKeys.Control, Key.PageUp, this, _ => this.Storyboard.Begin());
             new HotKey(ModifierKeys.Control, Key.PageDown, this, _ => this.Storyboard.Stop());
-
-            WebHost.CreateDefaultBuilder().
-                ConfigureServices(services =>
-                {
-                    services.AddTransient(_ => this);
-                    services.AddSignalR();
-                }).
-                Configure(app => {
-                    app.UseStaticFiles(new StaticFileOptions {
-                        FileProvider = new PhysicalFileProvider(@"C:\Users\stream\Desktop\memes2"),
-                        RequestPath = "/img"
-                    });
-
-                    app.UseStaticFiles(new StaticFileOptions
-                    {
-                        FileProvider = new PhysicalFileProvider(System.IO.Directory.GetCurrentDirectory()),
-                        RequestPath = "/html"
-                    });
-
-                    app.UseSignalR(c => c.MapHub<MemeHub>("/MemeHub"));
-                }).UseUrls("http://*:5001/").Build().Start();
         }
         
         private void TrayExit(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void TrayStartStopServer(object sender, RoutedEventArgs e)
+        {
+            if (this.webInterface.IsRunning)
+            {
+                this.webInterface.Stop();
+            }
+            else
+            {
+                this.webInterface.Start();
+            }
         }
     }
 }
