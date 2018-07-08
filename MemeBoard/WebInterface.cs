@@ -32,25 +32,9 @@ namespace MemeBoard
 
         public void Start()
         {
-            this.ExtractHTML();
             this.host = this.Build();
             this.host.Start();
             this.IsRunning = true;
-        }
-
-        private void ExtractHTML()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var filename = "index.html";
-            var resourceName = "MemeBoard." + filename;
-            
-            Directory.CreateDirectory(this.webroot);
-            
-            Stream stream = assembly.GetManifestResourceStream(resourceName);
-            var fileStream = File.Create(Path.Combine(this.webroot, filename));
-            stream.CopyTo(fileStream);
-            fileStream.Close();
-            stream.Close();
         }
 
         public void Stop()
@@ -85,7 +69,7 @@ namespace MemeBoard
 
                     app.UseStaticFiles(new StaticFileOptions
                     {
-                        FileProvider = new PhysicalFileProvider(this.webroot),
+                        FileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly()),
                         RequestPath = "/html"
                     });
 
