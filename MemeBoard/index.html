@@ -4,59 +4,111 @@
 <head>
 	<meta charset="utf-8" />
 	<script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
-	<title></title>
+	<title>MemeBoard</title>
+  <style>
+    :root {
+      --dark: #111;
+      --light: #eee;
+    }
+    #content {
+      width: 100%;
+      display: grid;
+      grid-gap: 5px;
+      grid-template-columns: repeat(10, 1fr);
+      font-family: "Helvetica", sans-serif;
+      font-size: 0.8em;
+    }
+    body.dark-mode {
+      background-color: var(--dark);
+      color: var(--light);
+    }
+    body.light-mode {
+      background-color: var(--light);
+      color: var(--dark);
+    }
+    body.dark-mode img {
+      box-sizing: border-box;
+      border: 5px solid var(--dark);
+      margin: 5px;
+    }
+    body.light-mode img {
+      box-sizing: border-box;
+      border: 5px solid var(--light);
+      margin: 5px;
+    }
+    body img.active {
+      border-color: green;
+    }
+    body img.tts {
+      border-color: purple;
+    }
+  </style>
+  <script>
+    function toggleDarkLight() {
+      var body = document.getElementById("body");
+      var currentClass = body.className;
+      body.className = currentClass == "dark-mode" ? "light-mode" : "dark-mode";
+    }
+  </script>
 </head>
-<body>
-	<div id="content"></div>
+<body id="body" class="dark-mode">
+  <div id="content"></div>
+  <button type="button" name="dark_light" onclick="toggleDarkLight()" title="Toggle dark/light mode">🌛</button>
 
-	<script>
-		async function main() {
-			var con = new signalR.HubConnectionBuilder()
-				.withUrl("/MemeHub")
-				.build()
+  <script>
+    async function main() {
+      var con = new signalR.HubConnectionBuilder()
+        .withUrl("/MemeHub")
+        .build()
 
-			con.on("Update", (memes) => {
+      con.on("Update", (memes) => {
 
-				var root = document.getElementById("content");
-				root.innerHTML = "";
+        var root = document.getElementById("content");
+        root.innerHTML = "";
 
-				for (meme of memes) {
-					var img = document.createElement("img");
+        for (meme of memes) {
 
-					img.src = "/img/" + meme.name;
+          var div = document.createElement("div");
+          var p = document.createElement("p");
+          var img = document.createElement("img");
 
-					if (meme.type == "TTS") {
-						img.src = "https://image.flaticon.com/icons/svg/149/149125.svg"
-					}
+          img.src = "/img/" + meme.name;
 
-					img.width = 100;
-					img.height = 100;
-					img.alt = meme.name;
-					img.meme = meme;
+          if (meme.type == "TTS") {
+            img.src = "https://image.flaticon.com/icons/svg/149/149125.svg"
+          }
 
-					img.style = "box-sizing: border-box; border: 5px solid white; margin: 5px;"
+          img.width = 100;
+          img.height = 100;
+          img.alt = meme.name;
+          img.meme = meme;
 
-					if (meme.isActive) {
-						img.style.borderColor = "green";
-						if (meme.type == "TTS") {
-							img.style.borderColor = "purple";
-						}
-					}
+          if (meme.isActive) {
+            img.classList.add("active");
+            if (meme.type == "TTS") {
+              img.classList.add("tts");
+            }
+          }
 
-					img.onclick = (element) => {
-						var source = element.target || element.srcElement;
+          img.onclick = (element) => {
+            var source = element.target || element.srcElement;
 
-						con.invoke("MemeClicked", source.meme.path);
-					};
+            con.invoke("MemeClicked", source.meme.path);
+          };
 
-					root.appendChild(img);
-				}
-			});
+          p.innerHTML = "Shortcut: CTRL + " + meme.prefix + "<br>" +
+            `${meme.type == "TTS" ? "Name: " + meme.name : ""}`
+          
+          div.appendChild(img);
+          div.appendChild(p);
+          root.appendChild(div);
+        }
+      });
 
-			await con.start();
-		}
+      await con.start();
+    }
 
-		main();
-	</script>
+    main();
+  </script>
 </body>
 </html>

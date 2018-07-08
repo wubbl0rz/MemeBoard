@@ -55,23 +55,27 @@ namespace MemeBoard
         public IWebHost Build()
         {
             return WebHost.CreateDefaultBuilder().
-                ConfigureServices(services => {
+                ConfigureServices(services =>
+                {
                     services.AddTransient(_ => this);
                     services.AddSignalR().AddJsonProtocol(o =>
                         o.PayloadSerializerSettings.Converters.Add(new StringEnumConverter()));
                 }).
-                Configure(app => {
+                Configure(app =>
+                {
                     app.UseStaticFiles(new StaticFileOptions
                     {
                         FileProvider = new PhysicalFileProvider(this.repo.Path),
                         RequestPath = "/img"
                     });
 
+
                     app.UseStaticFiles(new StaticFileOptions
                     {
                         FileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly()),
                         RequestPath = "/html"
                     });
+
 
                     app.UseSignalR(c => c.MapHub<MemeHub>("/MemeHub"));
                 }).

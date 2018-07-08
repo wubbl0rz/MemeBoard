@@ -39,7 +39,7 @@
                     <MenuItem 
                         Click="TrayStartStopServer"
                         IsCheckable="True"
-                        Header="Start/Stop Server" />
+                        Header="Start/Stop Server (Port 5001)" />
                     <MenuItem Header="Exit" Click="TrayExit" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>

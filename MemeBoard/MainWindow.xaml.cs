@@ -141,7 +141,7 @@ namespace MemeBoard
             var memePath = Path.Combine(Directory.GetCurrentDirectory(), "memes");
             if (!File.Exists(memePath))
                 Directory.CreateDirectory(memePath);
-            
+
             this.memeRepo = new MemeRepo(Path.Combine(Directory.GetCurrentDirectory(), "memes"));
 
             this.RefreshKeyBindings();

@@ -10,7 +10,7 @@ namespace MemeBoard
         Image,
         TTS
     }
-
+    
     public class Meme
     {
         public string Path { get; private set; }
@@ -18,7 +18,7 @@ namespace MemeBoard
         public bool IsAnimated { get; private set; }
         public string Name { get; private set; }
         public MemeType Type { get; private set; }
-
+        
         public bool IsActive { get; private set; }
 
         public void Activate()
