@@ -1,46 +1,134 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-	<meta charset="utf-8" />
-	<script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
-	<title>MemeBoard</title>
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
+  <title>MemeBoard</title>
   <style>
     :root {
-      --dark: #111;
+      --dark: #1d1f21;
       --light: #eee;
     }
+
+    body {
+      font-family: "Helvetica", sans-serif;
+    }
+
     #content {
       width: 100%;
       display: grid;
-      grid-gap: 5px;
-      grid-template-columns: repeat(10, 1fr);
-      font-family: "Helvetica", sans-serif;
+      grid-gap: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       font-size: 0.8em;
     }
+
     body.dark-mode {
       background-color: var(--dark);
       color: var(--light);
     }
+
     body.light-mode {
       background-color: var(--light);
       color: var(--dark);
     }
-    body.dark-mode img {
+
+    body.dark-mode div.item:hover {
+      box-shadow: 0 0px 15px 3px rgba(255, 255, 255, .2);
+    }
+
+    body.light-mode div.item:hover {
+      box-shadow: 0 0px 15px 3px rgba(0, 0, 0, .2);
+    }
+
+    body.dark-mode div {
       box-sizing: border-box;
       border: 5px solid var(--dark);
-      margin: 5px;
+      transition: box-shadow .2s;
     }
-    body.light-mode img {
+
+    body.light-mode div {
       box-sizing: border-box;
       border: 5px solid var(--light);
-      margin: 5px;
+      transition: box-shadow .2s;
     }
-    body img.active {
-      border-color: green;
+
+    body.dark-mode img {
+      margin: auto;
+      display: block;
     }
-    body img.tts {
-      border-color: purple;
+
+    body.light-mode img {
+      margin: auto;
+      display: block;
+    }
+
+    body.dark-mode p {
+      text-align: center;
+    }
+
+    body.light-mode p {
+      text-align: center;
+    }
+
+    body div.active {
+      border-color: #16e689;
+    }
+
+    body div.tts {
+      border-color: #b358ce;
+    }
+
+    .toggle-div {
+      text-align: center;
+      margin: 2% 0 2% 0;
+    }
+
+    button {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      outline: 0;
+      -webkit-appearance: none;
+    }
+
+    button {
+      display: inline-block;
+      position: relative;
+      padding: 20px 38px;
+      top: 0;
+      font-size: 30px;
+      font-family: "Open Sans", Helvetica;
+      border-radius: 4px;
+      border-bottom: 1px solid rgba( 28, 227, 125, 0.5);
+      background: rgba( 22, 230, 137, 1);
+      color: #fff;
+      box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.1);
+      -webkit-transform: translateZ(0);
+      -moz-transform: translateZ(0);
+      -ms-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-transition: all 0.2s ease;
+      -moz-transition: all 0.2s ease;
+      -ms-transition: all 0.2s ease;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      top: -10px;
+      box-shadow: 0px 10px 10px rgba( 15, 165, 60, 0.2);
+      -webkit-transform: rotateX(20deg);
+      -moz-transform: rotateX(20deg);
+      -ms-transform: rotateX(20deg);
+      transform: rotateX(20deg);
+    }
+
+    button:active {
+      top: 0px;
+      box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.0);
+      background: rgba( 20, 224, 133, 1);
     }
   </style>
   <script>
@@ -51,9 +139,13 @@
     }
   </script>
 </head>
+
 <body id="body" class="dark-mode">
+  <div class="toggle-div">
+    <button type="button" onclick="toggleDarkLight()" title="Dark or Light">Dark or Light</button>
+  </div>
+
   <div id="content"></div>
-  <button type="button" name="dark_light" onclick="toggleDarkLight()" title="Toggle dark/light mode">🌛</button>
 
   <script>
     async function main() {
@@ -69,6 +161,7 @@
         for (meme of memes) {
 
           var div = document.createElement("div");
+          div.setAttribute('class', 'item');
           var p = document.createElement("p");
           var img = document.createElement("img");
 
@@ -84,21 +177,21 @@
           img.meme = meme;
 
           if (meme.isActive) {
-            img.classList.add("active");
+            div.classList.add("active");
             if (meme.type == "TTS") {
-              img.classList.add("tts");
+              div.classList.add("tts");
             }
           }
 
-          img.onclick = (element) => {
+          div.onclick = (element) => {
             var source = element.target || element.srcElement;
 
             con.invoke("MemeClicked", source.meme.path);
           };
 
-          p.innerHTML = "Shortcut: CTRL + " + meme.prefix + "<br>" +
+          p.innerHTML = meme.prefix + "<br>" +
             `${meme.type == "TTS" ? "Name: " + meme.name : ""}`
-          
+
           div.appendChild(img);
           div.appendChild(p);
           root.appendChild(div);
@@ -111,4 +204,5 @@
     main();
   </script>
 </body>
+
 </html>
