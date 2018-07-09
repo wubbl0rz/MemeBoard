@@ -18,7 +18,6 @@ namespace MemeBoard
     {
         private readonly MemeRepo repo;
         private IWebHost host;
-        private readonly string webroot = Path.Combine(Path.GetTempPath(), "MemeBoard");
 
         public event Action<Meme> MemeClicked;
 
@@ -69,12 +68,20 @@ namespace MemeBoard
                         RequestPath = "/img"
                     });
 
-
+#if DEBUG
+                    var root = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"..\..\"));
+                    app.UseStaticFiles(new StaticFileOptions
+                    {
+                        FileProvider = new PhysicalFileProvider(root),
+                        RequestPath = "/html"
+                    });
+#else
                     app.UseStaticFiles(new StaticFileOptions
                     {
                         FileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly()),
                         RequestPath = "/html"
                     });
+#endif
 
 
                     app.UseSignalR(c => c.MapHub<MemeHub>("/MemeHub"));

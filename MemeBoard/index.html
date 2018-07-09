@@ -35,10 +35,12 @@
     }
 
     body.dark-mode div.item:hover {
+      cursor: default;
       box-shadow: 0 0px 15px 3px rgba(255, 255, 255, .2);
     }
 
     body.light-mode div.item:hover {
+      cursor: default;
       box-shadow: 0 0px 15px 3px rgba(0, 0, 0, .2);
     }
 
@@ -92,12 +94,9 @@
       cursor: pointer;
       outline: 0;
       -webkit-appearance: none;
-    }
-
-    button {
       display: inline-block;
       position: relative;
-      padding: 20px 38px;
+      padding: 10px 18px;
       top: 0;
       font-size: 30px;
       font-family: "Open Sans", Helvetica;
@@ -115,37 +114,43 @@
       transition: all 0.2s ease;
     }
 
-    button:hover {
-      top: -10px;
-      box-shadow: 0px 10px 10px rgba( 15, 165, 60, 0.2);
-      -webkit-transform: rotateX(20deg);
-      -moz-transform: rotateX(20deg);
-      -ms-transform: rotateX(20deg);
-      transform: rotateX(20deg);
-    }
+      button:hover {
+        top: -10px;
+        box-shadow: 0px 10px 10px rgba( 15, 165, 60, 0.2);
+        -webkit-transform: rotateX(20deg);
+        -moz-transform: rotateX(20deg);
+        -ms-transform: rotateX(20deg);
+        transform: rotateX(20deg);
+      }
 
-    button:active {
-      top: 0px;
-      box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.0);
-      background: rgba( 20, 224, 133, 1);
-    }
+      button:active {
+        top: 0px;
+        box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.0);
+        background: rgba( 20, 224, 133, 1);
+      }
   </style>
   <script>
     function toggleDarkLight() {
       var body = document.getElementById("body");
+      var button = document.getElementById("toggle-button");
       var currentClass = body.className;
       body.className = currentClass == "dark-mode" ? "light-mode" : "dark-mode";
+      button.innerHTML = currentClass == "dark-mode" ? "🌞" : "🌛";
     }
+  </script>
+  <script>
+    document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
+      ':35729/livereload.js?snipver=1"></' + 'script>')
   </script>
 </head>
 
 <body id="body" class="dark-mode">
-  <div class="toggle-div">
-    <button type="button" onclick="toggleDarkLight()" title="Dark or Light">Dark or Light</button>
-  </div>
-
   <div id="content"></div>
-
+  
+  <div class="toggle-div">
+    <button type="button" id="toggle-button" onclick="toggleDarkLight()" title="Dark or Light">🌛</button>
+  </div>
+  
   <script>
     async function main() {
       var con = new signalR.HubConnectionBuilder()
@@ -163,7 +168,7 @@
           div.setAttribute('class', 'item');
           var p = document.createElement("p");
           var img = document.createElement("img");
-
+     
           img.src = "/img/" + meme.name;
 
           if (meme.type == "TTS") {
@@ -173,7 +178,7 @@
           img.width = 100;
           img.height = 100;
           img.alt = meme.name;
-          img.meme = meme;
+          div.meme = meme;
 
           if (meme.isActive) {
             div.classList.add("active");
@@ -182,10 +187,21 @@
             }
           }
 
+          img.draggable = false
+          p.onmousedown = () => { return false };
+          div.onmousedown = () => { return false };
+
           div.onclick = (element) => {
             var source = element.target || element.srcElement;
+            console.log(source);
+            if (source.tagName == "DIV") {
+              con.invoke("MemeClicked", source.meme.path);
+            }
+            else {
+              con.invoke("MemeClicked", source.parentNode.meme.path);
+            }
 
-            con.invoke("MemeClicked", source.meme.path);
+            
           };
 
           p.innerHTML = meme.prefix + "<br>" +

@@ -122,7 +122,7 @@ namespace MemeBoard
             var hwnd = new WindowInteropHelper(this).Handle;
             Native.SetWindowExTransparent(hwnd);
         }
-
+        
         private void RefreshKeyBindings()
         {
             this.keyBindings.ForEach(k => k.Dispose());
