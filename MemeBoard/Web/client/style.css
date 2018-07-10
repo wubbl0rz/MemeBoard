@@ -1,0 +1,139 @@
+:root {
+  --dark: #1d1f21;
+  --light: #eee;
+}
+
+* {
+  margin: 0px;
+  padding: 0px;
+}
+
+body {
+  font-family: "Open Sans", Helvetica;
+}
+
+#app {
+  min-height: 100vh;
+  min-width: 100%;
+  display:  inline-block;
+}
+
+.dark-mode {
+  background-color: var(--dark);
+  color: var(--light);
+}
+
+.light-mode {
+  background-color: var(--light);
+  color: var(--dark);
+}
+
+.light-mode .items div {
+  border-radius: 5px;
+  border: 5px solid var(--light);
+}
+
+.dark-mode .items div {
+  border-radius: 5px;
+  border: 5px solid var(--dark);
+}
+
+.dark-mode .items li:hover {
+  cursor: default;
+  box-shadow: 0 0px 15px 3px rgba(255, 255, 255, .2);
+}
+
+.light-mode .items li:hover {
+  cursor: default;
+  box-shadow: 0 0px 15px 3px rgba(0, 0, 0, .2);
+}
+
+.items div.active {
+  border-color: #16e689;
+}
+
+.items div.active.tts {
+  border-color: #b358ce;
+}
+
+.dark-mode .items .tts img {
+  filter: invert(100%);
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.items li {
+  border-radius: 5px;
+  list-style-type: none;
+  margin: 15px;
+  text-align: center;
+  user-select: none;
+}
+
+.items img {
+  margin: 5px;
+}
+
+.items p {
+  margin: 0px;
+}
+
+nav {
+  position: fixed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+  padding: 5px;
+  background-color: var(--light);
+  width: 100%;
+}
+
+.light-mode nav {
+  background-color: var(--dark);
+}
+
+.dark-mode nav {
+  background-color: var(--light);
+}
+
+nav button {
+  float: right;
+}
+
+nav input {
+  float: left;
+  width: 70%;
+  font-size: 18px;
+}
+
+button {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  width: 40px;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 15px;
+  border-radius: 4px;
+  border-bottom: 1px solid rgba( 28, 227, 125, 0.5);
+  background: rgba( 22, 230, 137, 1);
+  color: #fff;
+  box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.1);
+  transition: all 0.2s ease;
+}
+
+  button:hover {
+    box-shadow: 0px 10px 10px rgba( 15, 165, 60, 0.2);
+  }
+
+  button:active {
+    top: 0px;
+    box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.0);
+    background: rgba( 20, 224, 133, 1);
+  }

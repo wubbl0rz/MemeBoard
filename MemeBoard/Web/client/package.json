@@ -1,0 +1,9 @@
+{
+  "name": "memeboard",
+  "version": "0.0.1",
+  "dependencies": {
+    "@aspnet/signalr": "^1.0.2",
+    "@types/jquery": "^3.3.4",
+    "jquery": "^3.3.1"
+  }
+}

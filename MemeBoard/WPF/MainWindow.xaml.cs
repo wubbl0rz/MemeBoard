@@ -43,11 +43,13 @@ namespace MemeBoard
 
         private void ToggleImageMeme(Meme meme)
         {
-            if (this.IsVisible && this.currentMeme == meme)
+            
+            if (this.WindowState != WindowState.Minimized && this.currentMeme == meme)
             {
                 this.currentMeme = null;
+                this.image.Source = null;
                 this.memeRepo.Memes.Where(m => m.Type == MemeType.Image).ToList().ForEach(m => m.Deactivate());
-                this.Hide();
+                this.WindowState = WindowState.Minimized;
                 return;
             }
 
@@ -62,7 +64,7 @@ namespace MemeBoard
             meme.Activate();
             this.currentMeme = meme;
             this.ShowActivated = false;
-            this.Show();
+            this.WindowState = WindowState.Normal;
         }
 
         private void ShowBitmap(string path)
@@ -153,6 +155,8 @@ namespace MemeBoard
 
             new HotKey(ModifierKeys.Control, Key.PageUp, this, _ => this.Storyboard.Begin());
             new HotKey(ModifierKeys.Control, Key.PageDown, this, _ => this.Storyboard.Stop());
+
+            this.webInterface.Start();
         }
         
         private void TrayExit(object sender, RoutedEventArgs e)
@@ -170,6 +174,11 @@ namespace MemeBoard
             {
                 this.webInterface.Start();
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.trayIcon.Dispose();
         }
     }
 }

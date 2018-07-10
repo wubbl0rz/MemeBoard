@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="utf-8" />
+  <script src="lib/signalr.min.js"></script>
+  <script src="lib/vue.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: "Open Sans", Helvetica;
+    }
+  </style>
+  <title>MemeBoard</title>
+</head>
+
+<body>
+  <div :class="mode" id="app">
+    <nav>
+        <input placeholder="search ..." @keydown.enter="selected(filteredMemes[0])" type="text" v-model="filter"/>
+        <button @click="toggleTheme">{{ modeIcon }}</button>
+    </nav>
+    <br>
+    <br>
+    <ul class="items">
+      <li v-for="meme in filteredMemes" :key="meme.path">
+        <div @click="selected(meme)" :class="{ active: meme.isActive, tts: meme.type == 'TTS' }">
+            <img :title="meme.name" draggable="true" width="130" height="130" :src="meme.url"/>
+            <p>{{ meme.prefix }}</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <script src="main.js"></script>
+</body>
+
+</html>

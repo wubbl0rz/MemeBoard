@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.IO;
 using System.Reflection;
+using RazorLight;
+using Microsoft.CodeAnalysis;
 
 namespace MemeBoard
 {
@@ -35,7 +37,7 @@ namespace MemeBoard
             this.host.Start();
             this.IsRunning = true;
         }
-
+        
         public void Stop()
         {
             this.host?.StopAsync().Wait();
@@ -48,7 +50,9 @@ namespace MemeBoard
                 return;
             
             var hub = this.host.Services.GetService<IHubContext<MemeHub>>();
-            hub.Clients.All.SendAsync("Update", this.repo.Memes);
+            var response = this.repo.Memes.ToList();
+            response.Sort((a, b) => a.Name.CompareTo(b.Name));
+            hub.Clients.All.SendAsync("Update", response);
         }
 
         public IWebHost Build()
@@ -57,35 +61,50 @@ namespace MemeBoard
                 ConfigureServices(services =>
                 {
                     services.AddTransient(_ => this);
-                    services.AddSignalR().AddJsonProtocol(o =>
+                    services.AddSignalR().AddJsonProtocol(o => 
                         o.PayloadSerializerSettings.Converters.Add(new StringEnumConverter()));
+                    services.AddSignalR();
+                    services.AddMvcCore();
                 }).
                 Configure(app =>
                 {
-                    app.UseStaticFiles(new StaticFileOptions
+                    var env = app.ApplicationServices.GetService<IHostingEnvironment>();
+
+                    app.UseStaticFiles(new StaticFileOptions()
                     {
                         FileProvider = new PhysicalFileProvider(this.repo.Path),
                         RequestPath = "/img"
                     });
 
-#if DEBUG
-                    var root = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"..\..\"));
-                    app.UseStaticFiles(new StaticFileOptions
-                    {
-                        FileProvider = new PhysicalFileProvider(root),
-                        RequestPath = "/html"
-                    });
-#else
-                    app.UseStaticFiles(new StaticFileOptions
-                    {
-                        FileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly()),
-                        RequestPath = "/html"
-                    });
-#endif
+                    app.UseSignalR(config => config.MapHub<MemeHub>("/MemeHub"));
 
+                    app.UseMvc(routes =>
+                    {
+                        routes.MapRoute("api", "api/{controller=Api}/{action=Index}/{id?}");
+                    });
+                    
+                    StaticFileOptions fileOptions = new StaticFileOptions()
+                    {
+                        FileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly(), "MemeBoard.Web.client")
+                    };
+                    
+                    app.UseSpa(spa =>
+                    {
+                        if (env.IsDevelopment())
+                        {
+                            spa.ApplicationBuilder.UseDeveloperExceptionPage();
+                            spa.UseProxyToSpaDevelopmentServer("http://127.0.0.1:5500");
+                        }
 
-                    app.UseSignalR(c => c.MapHub<MemeHub>("/MemeHub"));
+                        spa.Options.DefaultPageStaticFileOptions = fileOptions;
+                    });
+                    app.UseSpaStaticFiles(fileOptions);
                 }).
+#if DEBUG
+                UseEnvironment("development").
+#else
+                UseEnvironment("production").
+#endif
                 UseUrls($"http://*:5001/").
                 Build();
         }
@@ -101,7 +120,7 @@ namespace MemeBoard
             
             public override Task OnConnectedAsync()
             {
-                this.Clients.Caller.SendAsync("Update", this.parent.repo.Memes);
+                this.parent.SendUpdate();
                 return base.OnConnectedAsync();
             }
             

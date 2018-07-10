@@ -13,7 +13,7 @@
         Topmost="True"
         Height="1000"
         ShowInTaskbar="False"
-        Width="1000" Loaded="Window_Loaded">
+        Width="1000" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.Resources>
         <Storyboard x:Key="imageRotationStoryboard" Storyboard.TargetName="image" 
                     Storyboard.TargetProperty="RenderTransform.(RotateTransform.Angle)">
@@ -32,7 +32,7 @@
 
         <tb:TaskbarIcon x:Name="trayIcon"
                         Visibility="Visible"
-                        IconSource="memeboard.ico"
+                        IconSource="/WPF/memeboard.ico"
                         MenuActivation="RightClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
