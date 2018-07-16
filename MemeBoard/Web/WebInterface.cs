@@ -127,6 +127,12 @@ namespace MemeBoard
                 var meme = this.parent.repo.Memes.First(m => m.Path == path);
                 this.parent.MemeClicked?.Invoke(meme);
             }
+
+            public void RequestDelete(string path)
+            {
+                var meme = this.parent.repo.Memes.First(m => m.Path == path);
+                File.Delete(meme.Path);
+            }
         }
     }
 }

@@ -35,6 +35,8 @@ namespace MemeBoard
 
         private WebInterface webInterface;
         private SpeechSynthesizer tts = new SpeechSynthesizer();
+
+        private bool outputDisabled = false;
         
         public MainWindow()
         {
@@ -54,11 +56,14 @@ namespace MemeBoard
             }
 
             this.ResetAnimation();
-
-            if (meme.IsAnimated)
-                this.ShowGif(meme.Path);
-            else
-                this.ShowBitmap(meme.Path);
+            
+            if (!this.outputDisabled)
+            {
+                if (meme.IsAnimated)
+                    this.ShowGif(meme.Path);
+                else
+                    this.ShowBitmap(meme.Path);
+            }
 
             this.currentMeme?.Deactivate();
             meme.Activate();
@@ -69,7 +74,13 @@ namespace MemeBoard
 
         private void ShowBitmap(string path)
         {
-            this.image.Source = new BitmapImage(new Uri(path));
+            var source = new BitmapImage();
+            source.BeginInit();
+            source.UriSource = new Uri(path);
+            source.CacheOption = BitmapCacheOption.OnLoad;
+            source.EndInit();
+
+            this.image.Source = source;
         }
 
         private void ResetAnimation()
@@ -80,11 +91,12 @@ namespace MemeBoard
 
         private void ShowGif(string path)
         {
-            var img = new BitmapImage();
-            img.BeginInit();
-            img.UriSource = new Uri(path);
-            img.EndInit();
-            ImageBehavior.SetAnimatedSource(this.image, img);
+            var source = new BitmapImage();
+            source.BeginInit();
+            source.CacheOption = BitmapCacheOption.OnLoad;
+            source.UriSource = new Uri(path);
+            source.EndInit();
+            ImageBehavior.SetAnimatedSource(this.image, source);
         }
 
         private void PlayTextMeme(Meme meme)
@@ -179,6 +191,11 @@ namespace MemeBoard
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             this.trayIcon.Dispose();
+        }
+
+        private void TrayStartStopOutput(object sender, RoutedEventArgs e)
+        {
+            this.outputDisabled = !this.outputDisabled;
         }
     }
 }

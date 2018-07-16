@@ -36,13 +36,16 @@ new Vue({
         this.modeIcon = "🌛";
       }
     },
+    openWebPreview() {
+      window.open("/preview.html", "_blank");
+    },
     async drag(event) {
       event.preventDefault();
       
       var files = event.dataTransfer.files;
       var types = event.dataTransfer.types;
-      
-      this.dragActive = types[0] == "Files" &&  
+
+      this.dragActive = types.some(t => t == "Files") &&  
         ( event.type == "dragover" || 
           event.type == "dragenter" )
 
@@ -61,6 +64,10 @@ new Vue({
 
         this.isUploading = false;
       }
+    },
+    deleteMeme(event, meme){
+      event.stopPropagation();
+      this.con.invoke("RequestDelete", meme.path);
     },
     selected(meme) {      
       this.con.invoke("MemeClicked", meme.path);

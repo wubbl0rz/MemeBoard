@@ -6,9 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-// meme controller der bilder liefert selber implenmtieren... dann braucht man den image path kram nicht
-
-
 namespace MemeBoard
 {
     public class ApiController : Controller

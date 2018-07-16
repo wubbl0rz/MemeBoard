@@ -17,7 +17,7 @@
     <Window.Resources>
         <Storyboard x:Key="imageRotationStoryboard" Storyboard.TargetName="image" 
                     Storyboard.TargetProperty="RenderTransform.(RotateTransform.Angle)">
-            <DoubleAnimation From="0" To="360" BeginTime="0:0:0" Duration="0:0:1.5" RepeatBehavior="Forever" />
+            <DoubleAnimation From="0" To="360" BeginTime="0:0:0" Duration="0:0:0.5" RepeatBehavior="Forever" />
         </Storyboard>
     </Window.Resources>
     <StackPanel>
@@ -40,6 +40,10 @@
                         Click="TrayStartStopServer"
                         IsCheckable="True"
                         Header="Start/Stop Server (Port 5001)" />
+                    <MenuItem 
+                        Click="TrayStartStopOutput"
+                        IsCheckable="True"
+                        Header="Disable Output" />
                     <MenuItem Header="Exit" Click="TrayExit" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>

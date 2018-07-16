@@ -18,7 +18,7 @@
           <button>
             <span :class="{ rotate: this.isUploading }">⚙️</span>
           </button>
-          <button @click="toggleTheme">{{ modeIcon }}</button>
+          <button @click="openWebPreview">📺</button>
           <button @click="toggleTheme">{{ modeIcon }}</button>
         </div>
     </nav>
@@ -27,9 +27,10 @@
     <div v-if="this.dragActive" @dragleave="drag" @drop="drag" id="dragOverlay">༼ つ ◕_◕ ༽つ GIVE MEMES ༼ つ ◕_◕ ༽つ</div>
     <ul class="items">
       <li v-for="meme in filteredMemes" :key="meme.path">
-        <div @click="selected(meme)" :class="{ active: meme.isActive, tts: meme.type == 'TTS' }">
-            <img draggable="false" :title="meme.name" draggable="true" width="130" height="130" :src="meme.url"/>
-            <p>{{ meme.prefix }}</p>
+        <div @click="selected(meme)" class="memeBox" :class="{ active: meme.isActive, tts: meme.type == 'TTS' }">
+          <div @click="deleteMeme(event,meme)" class="delete">❌</div>
+          <img draggable="false" :title="meme.name" draggable="true" width="130" height="130" :src="meme.url"/>
+          <p>{{ meme.prefix }}</p>
         </div>
       </li>
     </ul>

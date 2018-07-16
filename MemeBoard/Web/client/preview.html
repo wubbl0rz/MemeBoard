@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Preview</title>
+  <script src="lib/signalr.min.js"></script>
+</head>
+<body>
+  <div id="preview"></div>
+  <script>
+    var con = new signalR.HubConnectionBuilder().withUrl("/MemeHub").build();
+    con.on("Update", memes => {
+      var root = document.getElementById("preview");
+      var meme = memes.find(m => m.isActive && m.type != "TTS");
+      if (meme) {
+        root.innerHTML = `<img width="100%" height="100%" src="${'/img/' + meme.name}"></img>`
+      }
+      else {
+        root.innerHTML = "";
+      }    
+    });
+    con.start();
+  </script>
+</body>
+</html>
