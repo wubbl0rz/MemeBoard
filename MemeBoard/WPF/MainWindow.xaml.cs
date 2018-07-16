@@ -155,6 +155,8 @@ namespace MemeBoard
 
             new HotKey(ModifierKeys.Control, Key.PageUp, this, _ => this.Storyboard.Begin());
             new HotKey(ModifierKeys.Control, Key.PageDown, this, _ => this.Storyboard.Stop());
+
+            this.webInterface.Start();
         }
         
         private void TrayExit(object sender, RoutedEventArgs e)

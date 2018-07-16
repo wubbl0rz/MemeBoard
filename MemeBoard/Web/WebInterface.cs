@@ -61,10 +61,11 @@ namespace MemeBoard
                 ConfigureServices(services =>
                 {
                     services.AddTransient(_ => this);
+                    services.AddTransient(_ => this.repo);
                     services.AddSignalR().AddJsonProtocol(o => 
                         o.PayloadSerializerSettings.Converters.Add(new StringEnumConverter()));
                     services.AddSignalR();
-                    services.AddMvcCore();
+                    services.AddMvc();
                 }).
                 Configure(app =>
                 {
@@ -78,10 +79,7 @@ namespace MemeBoard
 
                     app.UseSignalR(config => config.MapHub<MemeHub>("/MemeHub"));
 
-                    app.UseMvc(routes =>
-                    {
-                        routes.MapRoute("api", "api/{controller=Api}/{action=Index}/{id?}");
-                    });
+                    app.UseMvc();
                     
                     StaticFileOptions fileOptions = new StaticFileOptions()
                     {

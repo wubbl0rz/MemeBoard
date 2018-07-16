@@ -57,12 +57,12 @@ body {
 }
 
 .dark-mode .items .tts img {
-  filter: invert(100%);
+  filter: invert(80%);
 }
 
 .items {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
 .items li {
@@ -102,7 +102,7 @@ nav {
   background-color: var(--light);
 }
 
-nav button {
+nav div {
   float: right;
 }
 
@@ -119,6 +119,7 @@ button {
   width: 40px;
   cursor: pointer;
   padding: 5px;
+  margin-right: 15px;
   font-size: 15px;
   border-radius: 4px;
   border-bottom: 1px solid rgba( 28, 227, 125, 0.5);
@@ -137,3 +138,35 @@ button {
     box-shadow: 0px 0px 0px rgba( 15, 165, 60, 0.0);
     background: rgba( 20, 224, 133, 1);
   }
+
+#dragOverlay 
+{
+  position: fixed;
+  top: 0px;
+  background-color: var(--dark);
+  opacity: 0.9;
+  left: 0px;
+  z-index: 1;
+  font-size: 40px;
+  text-align: center;
+  line-height: 200px;
+  bottom: 0px;
+  right: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.rotate { 
+  display: inline-block;
+  animation: rotation 600ms infinite linear;
+  transform-origin:  43% 54%;
+}
+
+@keyframes rotation {
+  from {
+      -webkit-transform: rotate(0deg);
+  }
+  to {
+      -webkit-transform: rotate(360deg);
+  }
+}

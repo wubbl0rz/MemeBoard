@@ -6,6 +6,8 @@ new Vue({
     modeIcon: "🌛",
     con: null,
     filter: "",
+    dragActive: false,
+    isUploading: false,
     memes: []
   },
   computed:{
@@ -34,9 +36,33 @@ new Vue({
         this.modeIcon = "🌛";
       }
     },
-    selected(meme) {
-      console.log(meme);
+    async drag(event) {
+      event.preventDefault();
       
+      var files = event.dataTransfer.files;
+      var types = event.dataTransfer.types;
+      
+      this.dragActive = types[0] == "Files" &&  
+        ( event.type == "dragover" || 
+          event.type == "dragenter" )
+
+      if (files.length > 0) {        
+        this.isUploading = true;
+        
+        var formData = new FormData();
+        for (const file of files) {
+          formData.append("files", file);
+        }
+
+        await fetch('/api/Upload', {
+          method: "POST",
+          body: formData
+        }).catch(_ => null);
+
+        this.isUploading = false;
+      }
+    },
+    selected(meme) {      
       this.con.invoke("MemeClicked", meme.path);
     },
     updated(memes) {

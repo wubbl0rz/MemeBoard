@@ -7,26 +7,28 @@
   <script src="lib/signalr.min.js"></script>
   <script src="lib/vue.min.js"></script>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: "Open Sans", Helvetica;
-    }
-  </style>
   <title>MemeBoard</title>
 </head>
 
 <body>
-  <div :class="mode" id="app">
+  <div @dragenter="drag" @dragover="drag" :class="mode" id="app">
     <nav>
         <input placeholder="search ..." @keydown.enter="selected(filteredMemes[0])" type="text" v-model="filter"/>
-        <button @click="toggleTheme">{{ modeIcon }}</button>
+        <div>
+          <button>
+            <span :class="{ rotate: this.isUploading }">⚙️</span>
+          </button>
+          <button @click="toggleTheme">{{ modeIcon }}</button>
+          <button @click="toggleTheme">{{ modeIcon }}</button>
+        </div>
     </nav>
     <br>
     <br>
+    <div v-if="this.dragActive" @dragleave="drag" @drop="drag" id="dragOverlay">༼ つ ◕_◕ ༽つ GIVE MEMES ༼ つ ◕_◕ ༽つ</div>
     <ul class="items">
       <li v-for="meme in filteredMemes" :key="meme.path">
         <div @click="selected(meme)" :class="{ active: meme.isActive, tts: meme.type == 'TTS' }">
-            <img :title="meme.name" draggable="true" width="130" height="130" :src="meme.url"/>
+            <img draggable="false" :title="meme.name" draggable="true" width="130" height="130" :src="meme.url"/>
             <p>{{ meme.prefix }}</p>
         </div>
       </li>
@@ -34,5 +36,4 @@
   </div>
   <script src="main.js"></script>
 </body>
-
 </html>
